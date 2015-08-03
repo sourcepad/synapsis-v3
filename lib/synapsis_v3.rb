@@ -11,6 +11,7 @@ require "synapsis_v3/api_resource"
 require "synapsis_v3/api_operations/create"
 require "synapsis_v3/error"
 require "synapsis_v3/user"
+require "synapsis_v3/node"
 
 API_V3_PATH = 'api/v3/'
 
