@@ -16,5 +16,12 @@ class Synapsis::User < Synapsis::APIResource
     response = request(:post, sign_in_url, payload)
     return_response(response)
   end
+
+  def self.add_kyc(params)
+    add_kyc_url = "#{API_V3_PATH}#{class_name}/doc/add"
+
+    response = request(:post, add_kyc_url, params)
+    return_response(response)
+  end
 end
 
