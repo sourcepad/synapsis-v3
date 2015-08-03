@@ -23,5 +23,12 @@ class Synapsis::User < Synapsis::APIResource
     response = request(:post, add_kyc_url, params)
     return_response(response)
   end
+
+  def self.verify_kyc(params)
+    verify_kyc_url = "#{API_V3_PATH}#{class_name}/doc/verify"
+
+    response = request(:post, verify_kyc_url, params)
+    return_response(response)
+  end
 end
 
