@@ -29,4 +29,15 @@ class Synapsis::APIResource
   def self.parse_as_synapse_resource(response)
     return JSON.parse(response.body, object_class: Synapsis::Response)
   end
+
+  protected
+
+  def self.client_credentials
+    {
+      "client" => {
+        "client_id" => Synapsis.client_id,
+        "client_secret" => Synapsis.client_secret
+      }
+    }
+  end
 end

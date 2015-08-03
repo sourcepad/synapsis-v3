@@ -29,5 +29,44 @@ RSpec.describe Synapsis::User do
         expect(new_user_response.oauth.oauth_key).not_to be_empty
       end
     end
+
+    context 'errors' do
+      xit 'pending' do
+      end
+    end
+  end
+
+  context '.sign_in' do
+    context 'happy path' do
+      it 'signs in the user' do
+        sign_in_user_params = {
+          login: {
+            email: 'sample_user@synapsis.com',
+            password: '5ourcep4d'
+          },
+          user: {
+            _id: {
+              '$oid' => '55bf009b86c2733920d5b0af'
+            },
+            fingerprint: 'suasusau21324redakufejfjsf',
+            ip: '192.168.0.1'
+          }
+        }
+
+        sign_in_user_response = Synapsis::User.sign_in(sign_in_user_params)
+        expect(sign_in_user_response.success).to be_truthy
+        expect(sign_in_user_response.oauth.oauth_key).not_to be_empty
+      end
+    end
+
+    context 'errors' do
+      xit 'pending' do
+      end
+    end
+  end
+
+  context '.update' do
+    xit 'pending' do
+    end
   end
 end
