@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Daryll Santos"]
   spec.email         = ["daryll.santos@gmail.com"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{Ruby interface to the SynapsePayments API (v3)}
+  spec.description   = %q{Ruby interface to the SynapsePayments API (v3)}
+  spec.homepage      = "http://github.com/sourcepad/synapsis_v3"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
