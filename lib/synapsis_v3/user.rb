@@ -30,5 +30,12 @@ class Synapsis::User < Synapsis::APIResource
     response = request(:post, verify_kyc_url, params)
     return_response(response)
   end
+
+  def self.add_document(params)
+    add_document_url = "#{API_V3_PATH}user/doc/attachments/add"
+
+    response = request(:post, add_document_url, params)
+    return_response(response)
+  end
 end
 

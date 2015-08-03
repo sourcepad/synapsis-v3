@@ -69,4 +69,28 @@ RSpec.describe Synapsis::User do
     xit 'pending' do
     end
   end
+
+  context '.add_document' do
+    context 'happy path' do
+      xit 'pending--unable to attach' do
+        doc_params = {
+          login: {
+            oauth_key: SampleUser.oauth_consumer_key
+          },
+          user: {
+            doc: {
+              attachment: 'spec/test_file.txt',
+              type: 'BASE64',
+              format: 'TXT'
+            },
+            fingerprint: SampleUser.fingerprint
+          }
+        }
+
+        successful_add_document_response = Synapsis::User.add_document(doc_params)
+
+        expect(successful_add_document_response.success).to eq true
+      end
+    end
+  end
 end
