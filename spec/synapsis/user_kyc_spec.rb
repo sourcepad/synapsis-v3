@@ -21,12 +21,12 @@ RSpec.describe Synapsis::User do
         },
         fingerprint: SampleUser.fingerprint
       }
-
     }}
 
     context 'SSN validation successful, no need for doc/verify' do
       it 'adds a KYC' do
         added_kyc_response = Synapsis::User.add_kyc(add_kyc_params)
+
         expect(added_kyc_response.success).to be_truthy
         expect(added_kyc_response.message.en).to eq 'SSN information verified'
       end

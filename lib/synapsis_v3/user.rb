@@ -34,8 +34,18 @@ class Synapsis::User < Synapsis::APIResource
   def self.add_document(params)
     add_document_url = "#{API_V3_PATH}user/doc/attachments/add"
 
-    response = request(:post, add_document_url, params)
+    response = request(:post, add_document_url, convert_attachment_to_base_64(params))
+
     return_response(response)
   end
+
+  private
+
+  def self.convert_attachment_to_base_64(doc_params)
+    doc_params[:user][:doc][:attachment] = "data:text/csv;base64,#{Base64.encode64(File.open(doc_params[:user][:doc][:attachment], 'rb') { |f| f.read })}"
+
+    return doc_params
+  end
+
 end
 
