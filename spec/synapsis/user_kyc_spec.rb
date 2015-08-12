@@ -74,7 +74,7 @@ RSpec.describe Synapsis::User do
         failed_kyc_params = add_kyc_params.clone
         failed_kyc_params[:user][:doc][:document_value] = '1111'
 
-        expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error).with_message('Invalid SSN information supplied. Request user to submit a copy of passport/divers license and SSN via user/doc/attachments/add')
+        expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error).with_message('Invalid SSN information supplied. Please submit a copy of passport/divers license via user/doc/attachments/add')
       end
     end
   end
