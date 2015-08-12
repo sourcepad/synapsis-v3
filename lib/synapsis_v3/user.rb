@@ -46,6 +46,5 @@ class Synapsis::User < Synapsis::APIResource
 
     return doc_params
   end
-
 end
 

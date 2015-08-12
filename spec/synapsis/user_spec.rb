@@ -117,8 +117,6 @@ RSpec.describe Synapsis::User do
 
         successful_add_document_response = Synapsis::User.add_document(doc_params)
 
-
-
         expect(successful_add_document_response.success).to eq true
         expect(successful_add_document_response.message.en).to eq 'Attachment added'
         expect(successful_add_document_response.user.permission).to eq 'SEND-AND-RECEIVE'

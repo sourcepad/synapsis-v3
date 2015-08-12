@@ -1,4 +1,16 @@
 class Synapsis::Transaction < Synapsis::APIResource
+  extend Synapsis::APIOperations::Show
+
+  module Status
+    QUEUED_BY_SYNAPSE = 'QUEUED-BY-SYNAPSE'
+    QUEUED_BY_RECEIVER = 'QUEUED-BY-RECEIVER'
+    CREATED = 'CREATED'
+    PROCESSING_DEBIT = 'PROCESSING-DEBIT'
+    PROCESSING_CREDIT = 'PROCESSING-CREDIT'
+    SETTLED = 'SETTLED'
+    CANCELED = 'CANCELED'
+    RETURNED = 'RETURNED'
+  end
 
   # Synapse uses the same endpoint for other Synapse accounts, Account/Routing number, Bank Login, Wire-US, Wire-INT
   # Add via bank username/password
@@ -11,6 +23,15 @@ class Synapsis::Transaction < Synapsis::APIResource
 
     response = request(:post, add_transaction_url, params)
     return_response(response)
+  end
+
+  def self.show(params)
+    response = show_request(params)
+    return_response(response)
+  end
+
+  def self.class_name
+    'trans'
   end
 end
 

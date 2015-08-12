@@ -9,6 +9,7 @@ end
 require "synapsis_v3/version"
 require "synapsis_v3/api_resource"
 require "synapsis_v3/api_operations/create"
+require "synapsis_v3/api_operations/show"
 require "synapsis_v3/error"
 require "synapsis_v3/user"
 require "synapsis_v3/node"

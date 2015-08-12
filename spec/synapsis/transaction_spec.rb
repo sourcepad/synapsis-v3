@@ -2,47 +2,78 @@ require 'spec_helper'
 
 RSpec.describe Synapsis::Transaction do
   context '.add' do
-    context 'yo' do
-      let(:add_transaction_params) {{
-        login: { oauth_key: SampleSender.oauth_consumer_key },
-        user: { fingerprint: SampleSender.fingerprint },
-        trans: {
-          from: {
-            type: 'ACH-US',
-            id: SampleSender.bank_id
-          },
-          to: {
-            type: 'ACH-US',
-            id: SampleReceiver.bank_id
-          },
-          amount: {
-            amount: 10.10,
-            currency: 'USD'
-          }
+    let(:add_transaction_params) {{
+      login: { oauth_key: SampleSender.oauth_consumer_key },
+      user: { fingerprint: SampleSender.fingerprint },
+      trans: {
+        to: {
+          type: 'ACH-US',
+          id: SampleReceiver.bank_id
+        },
+        from: {
+          type: 'ACH-US',
+          id: SampleSender.bank_id
+        },
+        extra: {
+          ip: '192.168.0.1'
+        },
+        amount: {
+          amount: 10.10,
+          currency: 'USD'
         }
-      }}
+      }
+    }}
 
-      context 'happy path' do
-        it 'works' do
-          add_transaction_response = Synapsis::Transaction.add(add_transaction_params)
+    context 'happy path' do
+      it 'returns the correct transaction details' do
+        add_transaction_response = Synapsis::Transaction.add(add_transaction_params)
 
-          binding.pry
-          expect(add_transaction_response.success).to be_truthy
-          # expect(add_transaction_response.nodes.first._id.send(:$oid)).not_to be_nil
+        expect(add_transaction_response.success).to be_truthy
+        expect(add_transaction_response.trans._id.send(:$oid)).not_to be_nil
+        expect(add_transaction_response.trans.amount.amount).to eq add_transaction_params[:trans][:amount][:amount]
+        expect(add_transaction_response.trans.timeline.first.status).to eq Synapsis::Transaction::Status::CREATED
+        expect(add_transaction_response.trans.to.id.send(:$oid)).to eq SampleReceiver.bank_id
+      end
+    end
+
+    context 'errors' do
+      it 'wrong password raises a Synapsis Error' do
+        wrong_transaction_params = add_transaction_params.clone
+        wrong_transaction_params[:login][:oauth_key] = 'WRONG PASSWORD'
+        expect { Synapsis::Transaction.add(wrong_transaction_params) }.to raise_error(Synapsis::Error).with_message('Incorrect oauth_key/fingerprint')
+      end
+    end
+  end
+
+
+  context '.show' do
+    let(:view_transaction_params) {{
+      login: { oauth_key: SampleSender.oauth_consumer_key },
+      user: { fingerprint: SampleSender.fingerprint }
+    }}
+
+    context 'happy path' do
+      context 'no filter' do
+        it 'shows all transactions' do
+          view_transaction_response = Synapsis::Transaction::show(view_transaction_params)
+          expect(view_transaction_response.success).to be_truthy
+          expect(view_transaction_response.trans).to be_a_kind_of(Array)
         end
       end
 
-      context '' do
-        xit 'paying to a receiver' do
-        # Reciver is not authorizied to recive payments. Make the user go through the KYC process to enable reciving function
-        end
-      end
+      context 'filter based on $oid' do
+        xit 'PENDING--filter does not work on hashes--shows all transactions' do
+          view_transaction_params = {
+            login: { oauth_key: SampleSender.oauth_consumer_key },
+            user: { fingerprint: SampleSender.fingerprint },
+            'filter' => {
+              'page' => 1
+            }
+          }
+          view_transaction_response = Synapsis::Transaction::show(view_transaction_params)
 
-      context 'errors' do
-        it 'wrong password raises a Synapsis Error' do
-          wrong_password_bank_login_params = add_node_via_bank_login_params.clone
-          wrong_password_bank_login_params[:node][:info][:bank_pw] = 'WRONG PASSWORD'
-          expect { Synapsis::Node.add(wrong_password_bank_login_params) }.to raise_error(Synapsis::Error).with_message('Please Enter the Correct Username and Password')
+          expect(view_transaction_response.success).to be_truthy
+          expect(view_transaction_response.trans).to be_a_kind_of(Array)
         end
       end
     end
