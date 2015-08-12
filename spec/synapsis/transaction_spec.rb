@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Synapsis::Transaction do
-  context '.add' do
+  context '.add and .cancel' do
     let(:add_transaction_params) {{
       login: { oauth_key: SampleSender.oauth_consumer_key },
       user: { fingerprint: SampleSender.fingerprint },
@@ -25,7 +25,7 @@ RSpec.describe Synapsis::Transaction do
     }}
 
     context 'happy path' do
-      it 'returns the correct transaction details' do
+      it 'returns the correct transaction details, then cancels the transaction' do
         add_transaction_response = Synapsis::Transaction.add(add_transaction_params)
 
         expect(add_transaction_response.success).to be_truthy
@@ -33,6 +33,21 @@ RSpec.describe Synapsis::Transaction do
         expect(add_transaction_response.trans.amount.amount).to eq add_transaction_params[:trans][:amount][:amount]
         expect(add_transaction_response.trans.timeline.first.status).to eq Synapsis::Transaction::Status::CREATED
         expect(add_transaction_response.trans.to.id.send(:$oid)).to eq SampleReceiver.bank_id
+
+        cancel_transaction_params = {
+          login: { oauth_key: SampleSender.oauth_consumer_key },
+          user: { fingerprint: SampleSender.fingerprint },
+          trans: {
+            _id: {
+              '$oid' => add_transaction_response.trans._id.send(:$oid)
+            }
+          }
+        }
+
+        cancel_transaction_response = Synapsis::Transaction.cancel(cancel_transaction_params)
+
+        expect(cancel_transaction_response.success).to be_truthy
+        expect(cancel_transaction_response.message.en).to eq 'Transaction has been canceled'
       end
     end
 

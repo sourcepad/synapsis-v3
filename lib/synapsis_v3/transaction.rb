@@ -30,6 +30,13 @@ class Synapsis::Transaction < Synapsis::APIResource
     return_response(response)
   end
 
+  def self.cancel(params)
+    cancel_transaction_url = "#{API_V3_PATH}trans/cancel"
+
+    response = request(:post, cancel_transaction_url, params)
+    return_response(response)
+  end
+
   def self.class_name
     'trans'
   end
