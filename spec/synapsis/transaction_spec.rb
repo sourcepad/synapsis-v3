@@ -52,10 +52,28 @@ RSpec.describe Synapsis::Transaction do
     end
 
     context 'errors' do
-      it 'wrong password raises a Synapsis Error' do
-        wrong_transaction_params = add_transaction_params.clone
-        wrong_transaction_params[:login][:oauth_key] = 'WRONG PASSWORD'
-        expect { Synapsis::Transaction.add(wrong_transaction_params) }.to raise_error(Synapsis::Error).with_message('Incorrect oauth_key/fingerprint')
+      context '.add' do
+        it 'wrong password raises a Synapsis Error' do
+          wrong_transaction_params = add_transaction_params.clone
+          wrong_transaction_params[:login][:oauth_key] = 'WRONG PASSWORD'
+          expect { Synapsis::Transaction.add(wrong_transaction_params) }.to raise_error(Synapsis::Error).with_message('Incorrect oauth_key/fingerprint')
+        end
+      end
+
+      context '.cancel' do
+        it 'you can\'t cancel a SETTLED transaction' do
+          cancel_settled_transaction_params = {
+            login: { oauth_key: SampleSender.oauth_consumer_key },
+            user: { fingerprint: SampleSender.fingerprint },
+            trans: {
+              _id: {
+                '$oid' => 'ID55c9d68b86c2737915d1de08' # Settled transaction: https://sandbox.synapsepay.com/v3/dashboard/#/transaction/55c9d68b86c2737915d1de08
+              }
+            }
+          }
+
+          expect { Synapsis::Transaction.cancel(cancel_settled_transaction_params) }.to raise_error(Synapsis::Error).with_message('Sorry, this request could not be processed. Please try again later.')
+        end
       end
     end
   end
