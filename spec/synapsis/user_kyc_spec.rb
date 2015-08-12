@@ -1,31 +1,60 @@
 require 'spec_helper'
 
+class UserFactory
+  def self.create_user_for_kyc
+    user_params = {
+      logins: [
+        email: 'synapsis_kyc_spec@sourcepad.com',
+        password: '5ourcep4d',
+        read_only: false
+      ],
+      phone_numbers: [
+        '901.111.1111'
+      ],
+      legal_names: [
+        'Synapsis KYCSpec'
+      ],
+      fingerprints: [
+        'fingerprint' => 'suasusau21324redakufejfjsf'
+      ],
+      ips: [
+        '192.168.0.1'
+      ]
+    }
+
+    return Synapsis::User.create(user_params)
+  end
+end
+
 RSpec.describe Synapsis::User do
   context '.add_kyc/.verify_kyc' do
-    let!(:add_kyc_params) {{
-      login: {
-        oauth_key: SampleUser.oauth_consumer_key
-      },
-      user: {
-        doc: {
-          birth_day: 4,
-          birth_month: 2,
-          birth_year: 1940,
-          name_first: SampleUser.name_first,
-          name_last: SampleUser.name_last,
-          address_street1: '1 Infinate Loop',
-          address_postal_code: '95014',
-          address_country_code: 'US',
-          document_value: '2222',
-          document_type: 'SSN'
+    # We need to create users because Synapse limits doc attachments (verify_kyc) to 5 per user. Then we need to create users before each test because a partially successful doc attachment affects subsequent requests' output.
+    before(:each) do
+      @add_kyc_params = {
+        login: {
+          oauth_key: UserFactory.create_user_for_kyc.oauth.oauth_key
         },
-        fingerprint: SampleUser.fingerprint
+        user: {
+          doc: {
+            birth_day: 4,
+            birth_month: 2,
+            birth_year: 1940,
+            name_first: 'Sample',
+            name_last: 'KYCSpec',
+            address_street1: '1 Infinate Loop',
+            address_postal_code: '95014',
+            address_country_code: 'US',
+            document_value: '2222',
+            document_type: 'SSN'
+          },
+          fingerprint: 'suasusau21324redakufejfjsf'
+        }
       }
-    }}
+    end
 
     context 'SSN validation successful, no need for doc/verify' do
       it 'adds a KYC' do
-        added_kyc_response = Synapsis::User.add_kyc(add_kyc_params)
+        added_kyc_response = Synapsis::User.add_kyc(@add_kyc_params)
 
         expect(added_kyc_response.success).to be_truthy
         expect(added_kyc_response.message.en).to eq 'SSN information verified'
@@ -34,7 +63,7 @@ RSpec.describe Synapsis::User do
 
     context 'SSN validation successful, no need for doc/verify' do
       it 'returns a hash of questions' do
-        partially_verified_kyc_params = add_kyc_params.clone
+        partially_verified_kyc_params = @add_kyc_params.clone
         partially_verified_kyc_params[:user][:doc][:document_value] = '0000'
 
         partially_added_kyc_response = Synapsis::User.add_kyc(partially_verified_kyc_params)
@@ -71,7 +100,7 @@ RSpec.describe Synapsis::User do
 
     context 'SSN validation fails -- when means no SSN verification was found' do
       it 'raises a Synapsis::Error for submitting invalid SSN information' do
-        failed_kyc_params = add_kyc_params.clone
+        failed_kyc_params = @add_kyc_params.clone
         failed_kyc_params[:user][:doc][:document_value] = '1111'
 
         expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error).with_message('Invalid SSN information supplied. Please submit a copy of passport/divers license via user/doc/attachments/add')
