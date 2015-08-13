@@ -138,7 +138,7 @@ RSpec.describe Synapsis::Node do
 
   context '.remove' do
     context 'happy path' do
-      it 'removes the bank account' do
+      it 'removes the node' do
         add_node_via_bank_login_params = {
           login: { oauth_key: SampleUser.oauth_consumer_key },
           user: { fingerprint: SampleUser.fingerprint },
@@ -169,6 +169,32 @@ RSpec.describe Synapsis::Node do
 
         expect(removed_node_response.success).to be_truthy
         expect(removed_node_response.message.en).to eq 'Node removed'
+      end
+    end
+  end
+
+  context '.show' do
+    context 'happy path' do
+      context 'filter on type of transaction' do
+        it 'shows the node' do
+          show_node_params = {
+            login: { oauth_key: SampleUser.oauth_consumer_key },
+            user: { fingerprint: SampleUser.fingerprint },
+            filter: {
+              'type' => 'ACH-US'
+            }
+          }
+
+          show_node_response = Synapsis::Node.show(show_node_params)
+
+          expect(show_node_response.success).to be_truthy
+          expect(show_node_response.nodes).to be_a_kind_of(Array)
+        end
+      end
+
+      context 'filter on supp_id' do
+        xit 'not working, key error' do
+        end
       end
     end
   end

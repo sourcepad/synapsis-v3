@@ -1,4 +1,6 @@
 class Synapsis::Node < Synapsis::APIResource
+  extend Synapsis::APIOperations::Show
+
   module AccountType
     PERSONAL = 'PERSONAL'
     BUSINESS = 'BUSINESS'

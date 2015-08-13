@@ -25,11 +25,6 @@ class Synapsis::Transaction < Synapsis::APIResource
     return_response(response)
   end
 
-  def self.show(params)
-    response = show_request(params)
-    return_response(response)
-  end
-
   def self.cancel(params)
     cancel_transaction_url = "#{API_V3_PATH}trans/cancel"
 
