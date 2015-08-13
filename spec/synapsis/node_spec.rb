@@ -135,4 +135,41 @@ RSpec.describe Synapsis::Node do
       end
     end
   end
+
+  context '.remove' do
+    context 'happy path' do
+      it 'removes the bank account' do
+        add_node_via_bank_login_params = {
+          login: { oauth_key: SampleUser.oauth_consumer_key },
+          user: { fingerprint: SampleUser.fingerprint },
+          node: {
+            type: 'ACH-US',
+            info: {
+              bank_id: 'synapse_nomfa',
+              bank_pw: 'test1234',
+              bank_name: 'bofa'
+            },
+            extra: {
+              supp_id: '123sa'
+            }
+          }
+        }
+
+        added_node_response = Synapsis::Node.add(add_node_via_bank_login_params)
+
+        remove_node_params = {
+          login: { oauth_key: SampleUser.oauth_consumer_key },
+          user: { fingerprint: SampleUser.fingerprint },
+          node: {
+            '_id' => { '$oid' => added_node_response.nodes.first._id.send(:$oid) }
+          }
+        }
+
+        removed_node_response = Synapsis::Node.remove(remove_node_params)
+
+        expect(removed_node_response.success).to be_truthy
+        expect(removed_node_response.message.en).to eq 'Node removed'
+      end
+    end
+  end
 end

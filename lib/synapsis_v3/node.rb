@@ -32,5 +32,13 @@ class Synapsis::Node < Synapsis::APIResource
     response = request(:post, verify_node_url, params)
     return_response(response)
   end
+
+ # <Synapsis::Response message=#<Synapsis::Response en="Node removed">, success=true>
+  def self.remove(params)
+    remove_node_url = "#{API_V3_PATH}node/remove"
+
+    response = request(:post, remove_node_url, params)
+    return_response(response)
+  end
 end
 
