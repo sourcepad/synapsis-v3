@@ -125,6 +125,22 @@ RSpec.describe Synapsis::User do
     end
   end
 
+  context '.show' do
+    context 'happy path, filtered via email' do
+      it 'is able to search for the user' do
+        show_params = {
+          'filter' => {
+            'page' => 1
+          }
+        }
+
+        successful_show_user_response = Synapsis::User.show(show_params)
+        expect(successful_show_user_response.success).to eq true
+        expect(successful_show_user_response.users).to be_a_kind_of(Array)
+      end
+    end
+  end
+
   context '.search' do
     context 'happy path, filtered via email' do
       it 'is able to search for the user' do
@@ -136,9 +152,9 @@ RSpec.describe Synapsis::User do
           }
         }
 
-        successful_add_document_response = Synapsis::User.search(search_params)
-        expect(successful_add_document_response.success).to eq true
-        expect(successful_add_document_response.users).to be_a_kind_of(Array)
+        successful_search_user_response = Synapsis::User.search(search_params)
+        expect(successful_search_user_response.success).to eq true
+        expect(successful_search_user_response.users).to be_a_kind_of(Array)
       end
     end
   end

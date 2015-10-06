@@ -39,6 +39,14 @@ class Synapsis::User < Synapsis::APIResource
     return_response(response)
   end
 
+  def self.show(params)
+    search_user_url = "#{API_V3_PATH}#{class_name}/client/users"
+
+    response = request(:post, search_user_url, params.merge(client_credentials))
+
+    return_response(response)
+  end
+
   def self.search(params)
     search_user_url = "#{API_V3_PATH}#{class_name}/search"
 
