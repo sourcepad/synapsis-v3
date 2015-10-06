@@ -39,6 +39,14 @@ class Synapsis::User < Synapsis::APIResource
     return_response(response)
   end
 
+  def self.search(params)
+    search_user_url = "#{API_V3_PATH}#{class_name}/search"
+
+    response = request(:post, search_user_url, params.merge(client_credentials))
+
+    return_response(response)
+  end
+
   private
 
   def self.convert_attachment_to_base_64(doc_params)

@@ -26,6 +26,7 @@ RSpec.describe Synapsis::User do
         }
 
         new_user_response = Synapsis::User.create(user_params)
+
         expect(new_user_response.success).to be_truthy
         expect(new_user_response.oauth.oauth_key).not_to be_empty
       end
@@ -120,6 +121,24 @@ RSpec.describe Synapsis::User do
         expect(successful_add_document_response.success).to eq true
         expect(successful_add_document_response.message.en).to eq 'Attachment added'
         expect(successful_add_document_response.user.permission).to eq 'SEND-AND-RECEIVE'
+      end
+    end
+  end
+
+  context '.search' do
+    context 'happy path, filtered via email' do
+      it 'is able to search for the user' do
+        search_params = {
+          'filter' => {
+            'page' => 1,
+            'exact_match' => true,
+            'query' => 'synapsistest@sourcepad.com'
+          }
+        }
+
+        successful_add_document_response = Synapsis::User.search(search_params)
+        expect(successful_add_document_response.success).to eq true
+        expect(successful_add_document_response.users).to be_a_kind_of(Array)
       end
     end
   end
