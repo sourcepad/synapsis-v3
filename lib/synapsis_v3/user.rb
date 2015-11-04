@@ -17,6 +17,10 @@ class Synapsis::User < Synapsis::APIResource
     return_response(response)
   end
 
+  def self.refresh(params)
+    return sign_in(params)
+  end
+
   def self.add_kyc(params)
     add_kyc_url = "#{API_V3_PATH}#{class_name}/doc/add"
 
@@ -40,9 +44,17 @@ class Synapsis::User < Synapsis::APIResource
   end
 
   def self.show(params)
-    search_user_url = "#{API_V3_PATH}#{class_name}/client/users"
+    show_user_url = "#{API_V3_PATH}#{class_name}/client/users"
 
-    response = request(:post, search_user_url, params.merge(client_credentials))
+    response = request(:post, show_user_url, params.merge(client_credentials))
+
+    return_response(response)
+  end
+
+  def self.show_kyc(params)
+    show_kyc_url = "#{API_V3_PATH}#{class_name}/kyc/show"
+
+    response = request(:post, show_kyc_url, params.merge(client_credentials))
 
     return_response(response)
   end
