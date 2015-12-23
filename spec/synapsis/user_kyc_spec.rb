@@ -161,6 +161,41 @@ RSpec.describe Synapsis::User do
           node: { _id: { "$oid" => synapse_us_node } },
           login: { oauth_key: new_user_oauth_key }
         )
+
+      end
+    end
+
+    context 'happy path' do
+      it 'attaches' do
+        photo_path = 'spec/support/test_text.txt'
+        new_user_response = UserFactory.create_user
+        new_user_oauth_key = new_user_response.oauth.oauth_key
+
+        doc_params = {
+          login: {
+            oauth_key: new_user_oauth_key
+          },
+          user: {
+            doc: {
+              attachment: photo_path
+            },
+            fingerprint: 'suasusau21324redakufejfjsf'
+          }
+        }
+
+        doc = Synapsis::User.add_document(doc_params)
+
+        linked_nodes = Synapsis::Node.show({
+          login: { oauth_key: new_user_oauth_key },
+          user: { fingerprint: 'suasusau21324redakufejfjsf' }
+        })
+
+        synapse_us_node = linked_nodes.nodes.first._id.send(:$oid)
+
+        show_user_kyc_response = Synapsis::User.show_kyc(
+          node: { _id: { "$oid" => synapse_us_node } },
+          login: { oauth_key: new_user_oauth_key }
+        )
       end
     end
   end

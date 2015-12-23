@@ -1,0 +1,6 @@
+birth_day: params[:credentials][:birth_day],
+  birth_month: params[:credentials][:birth_month],
+  birth_year: params[:credentials][:birth_year],
+  name_first: params[:member_detail_object].first_name,
+  name_last: params[:member_detail_object].last_name,
+  address_street1: working_address.address1,

@@ -74,7 +74,12 @@ class Synapsis::User < Synapsis::APIResource
 
   def self.convert_attachment_to_base_64(doc_params)
     file_type = MIME::Types.type_for(doc_params[:user][:doc][:attachment]).first.content_type
-    mime_padding = "data:#{file_type};base64,"
+
+    if file_type == 'text/plain'
+      mime_padding = "data:text/csv;base64,"
+    else
+      mime_padding = "data:#{file_type};base64,"
+    end
 
     doc_params[:user][:doc][:attachment] = "#{mime_padding}#{Base64.encode64(File.open(doc_params[:user][:doc][:attachment], 'rb') { |f| f.read })}"
 
