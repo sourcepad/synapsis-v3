@@ -1,3 +1,6 @@
+require 'mime/types'
+require 'base64'
+
 class Synapsis::User < Synapsis::APIResource
   extend Synapsis::APIOperations::Create
 
@@ -70,7 +73,10 @@ class Synapsis::User < Synapsis::APIResource
   private
 
   def self.convert_attachment_to_base_64(doc_params)
-    doc_params[:user][:doc][:attachment] = "data:text/csv;base64,#{Base64.encode64(File.open(doc_params[:user][:doc][:attachment], 'rb') { |f| f.read })}"
+    file_type = MIME::Types.type_for(doc_params[:user][:doc][:attachment]).first.content_type
+    mime_padding = "data:#{file_type};base64,"
+
+    doc_params[:user][:doc][:attachment] = "#{mime_padding}#{Base64.encode64(File.open(doc_params[:user][:doc][:attachment], 'rb') { |f| f.read })}"
 
     return doc_params
   end

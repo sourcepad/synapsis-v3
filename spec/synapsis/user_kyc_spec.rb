@@ -1,38 +1,13 @@
 require 'spec_helper'
 
-class UserFactory
-  def self.create_user_for_kyc
-    user_params = {
-      logins: [
-        email: 'synapsis_kyc_spec@sourcepad.com',
-        password: '5ourcep4d',
-        read_only: false
-      ],
-      phone_numbers: [
-        '901.111.1111'
-      ],
-      legal_names: [
-        'Synapsis KYCSpec'
-      ],
-      fingerprints: [
-        'fingerprint' => 'suasusau21324redakufejfjsf'
-      ],
-      ips: [
-        '192.168.0.1'
-      ]
-    }
-
-    return Synapsis::User.create(user_params)
-  end
-end
-
 RSpec.describe Synapsis::User do
   context '.add_kyc/.verify_kyc' do
     # We need to create users because Synapse limits doc attachments (verify_kyc) to 5 per user. Then we need to create users before each test because a partially successful doc attachment affects subsequent requests' output.
     before(:each) do
+      @created_user = UserFactory.create_user
       @add_kyc_params = {
         login: {
-          oauth_key: UserFactory.create_user_for_kyc.oauth.oauth_key
+          oauth_key: @created_user.oauth.oauth_key
         },
         user: {
           doc: {
@@ -57,7 +32,53 @@ RSpec.describe Synapsis::User do
         added_kyc_response = Synapsis::User.add_kyc(@add_kyc_params)
 
         expect(added_kyc_response.success).to be_truthy
-        expect(added_kyc_response.message.en).to eq 'SSN information verified'
+        expect(added_kyc_response.message.en).to eq 'Document information verified.'
+
+        viewed_user_params = {
+          'filter' => {
+            'page' => 1,
+            'exact_match' => true,
+            'query' => '5639f91086c27307e5ff6749'
+          }
+        }
+
+        successful_search_user_response = Synapsis::User.search(viewed_user_params)
+
+        sign_in_user_params = {
+          login: {
+            email: 'sample_user@synapsis.com',
+            password: '5ourcep4d'
+          },
+          user: {
+            _id: {
+              '$oid' => '55bf009b86c2733920d5b0af'
+            },
+            fingerprint: 'suasusau21324redakufejfjsf',
+            ip: '192.168.0.1'
+          }
+        }
+
+        binding.pry
+
+        sign_in_user_response = Synapsis::User.sign_in(sign_in_user_params)
+
+        binding.pry
+
+        refresh_params = {
+          login: {
+            refresh_token: @created_user.oauth.refresh_token
+          },
+          user: {
+            _id: {
+              '$oid' => added_kyc_response.user._id.send(:$oid)
+            },
+            fingerprint: 'suasusau21324redakufejfjsf',
+            ip: '192.168.0.1'
+          }
+        }
+
+        refresh_response = Synapsis::User.refresh(refresh_params)
+        binding.pry
       end
     end
 
@@ -104,6 +125,42 @@ RSpec.describe Synapsis::User do
         failed_kyc_params[:user][:doc][:document_value] = '1111'
 
         expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error).with_message('Invalid SSN information supplied. Please submit a copy of passport/divers license via user/doc/attachments/add')
+      end
+    end
+  end
+
+  context '.add_document' do
+    context 'happy path' do
+      it 'attaches' do
+        photo_path = 'spec/support/test_photo.jpg'
+        new_user_response = UserFactory.create_user
+        new_user_oauth_key = new_user_response.oauth.oauth_key
+
+        doc_params = {
+          login: {
+            oauth_key: new_user_oauth_key
+          },
+          user: {
+            doc: {
+              attachment: photo_path
+            },
+            fingerprint: 'suasusau21324redakufejfjsf'
+          }
+        }
+
+        doc = Synapsis::User.add_document(doc_params)
+
+        linked_nodes = Synapsis::Node.show({
+          login: { oauth_key: new_user_oauth_key },
+          user: { fingerprint: 'suasusau21324redakufejfjsf' }
+        })
+
+        synapse_us_node = linked_nodes.nodes.first._id.send(:$oid)
+
+        show_user_kyc_response = Synapsis::User.show_kyc(
+          node: { _id: { "$oid" => synapse_us_node } },
+          login: { oauth_key: new_user_oauth_key }
+        )
       end
     end
   end
