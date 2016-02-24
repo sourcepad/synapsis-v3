@@ -1,11 +1,16 @@
 require 'spec_helper'
 
 RSpec.describe Synapsis::Node do
+  before(:all) do
+    @customer = UserFactory.create_user
+    @oauth_token = @customer.oauth.oauth_key
+  end
+
   context '.add and .verify' do
     context 'ACH account with bank login, no MFA' do
       let(:add_node_via_bank_login_params) {{
-        login: { oauth_key: SampleUser.oauth_consumer_key },
-        user: { fingerprint: SampleUser.fingerprint },
+        login: { oauth_key: @oauth_token },
+        user: { fingerprint: UserFactory.default_fingerprint },
         node: {
           type: 'ACH-US',
           info: {
@@ -38,8 +43,8 @@ RSpec.describe Synapsis::Node do
 
     context 'ACH account with bank login, with MFA' do
       let(:add_node_via_bank_login_params) {{
-        login: { oauth_key: SampleUser.oauth_consumer_key },
-        user: { fingerprint: SampleUser.fingerprint },
+        login: { oauth_key: @oauth_token },
+        user: { fingerprint: UserFactory.default_fingerprint },
         node: {
           type: 'ACH-US',
           info: {
@@ -60,8 +65,8 @@ RSpec.describe Synapsis::Node do
           expect(add_node_via_bank_login_with_mfa_response.nodes.first._id.send(:$oid)).not_to be_nil
 
           verify_node_via_mfa_params = {
-            login: { oauth_key: SampleUser.oauth_consumer_key },
-            user: { fingerprint: SampleUser.fingerprint },
+            login: { oauth_key: @oauth_token },
+            user: { fingerprint: UserFactory.default_fingerprint },
             node: {
               _id: {
                 '$oid' => add_node_via_bank_login_with_mfa_response.nodes.first._id.send(:$oid)
@@ -81,8 +86,8 @@ RSpec.describe Synapsis::Node do
 
     context 'ACH account with account & routing number' do
       let(:add_node_via_account_number_params) {{
-        login: { oauth_key: SampleUser.oauth_consumer_key },
-        user: { fingerprint: SampleUser.fingerprint },
+        login: { oauth_key: @oauth_token },
+        user: { fingerprint: UserFactory.default_fingerprint },
         node: {
           type: 'ACH-US',
           info: {
@@ -107,8 +112,8 @@ RSpec.describe Synapsis::Node do
           expect(add_node_via_account_number_response.nodes.first._id.send(:$oid)).not_to be_nil
 
           verify_node_via_account_number_params = {
-            login: { oauth_key: SampleUser.oauth_consumer_key },
-            user: { fingerprint: SampleUser.fingerprint },
+            login: { oauth_key: @oauth_token },
+            user: { fingerprint: UserFactory.default_fingerprint },
             node: {
               _id: {
                 '$oid' => add_node_via_account_number_response.nodes.first._id.send(:$oid)
@@ -140,8 +145,8 @@ RSpec.describe Synapsis::Node do
     context 'happy path' do
       it 'removes the node' do
         add_node_via_bank_login_params = {
-          login: { oauth_key: SampleUser.oauth_consumer_key },
-          user: { fingerprint: SampleUser.fingerprint },
+          login: { oauth_key: @oauth_token },
+          user: { fingerprint: UserFactory.default_fingerprint },
           node: {
             type: 'ACH-US',
             info: {
@@ -158,8 +163,8 @@ RSpec.describe Synapsis::Node do
         added_node_response = Synapsis::Node.add(add_node_via_bank_login_params)
 
         remove_node_params = {
-          login: { oauth_key: SampleUser.oauth_consumer_key },
-          user: { fingerprint: SampleUser.fingerprint },
+          login: { oauth_key: @oauth_token },
+          user: { fingerprint: UserFactory.default_fingerprint },
           node: {
             '_id' => { '$oid' => added_node_response.nodes.first._id.send(:$oid) }
           }
@@ -178,8 +183,8 @@ RSpec.describe Synapsis::Node do
       context 'filter on type of transaction' do
         it 'shows the node' do
           show_node_params = {
-            login: { oauth_key: SampleUser.oauth_consumer_key },
-            user: { fingerprint: SampleUser.fingerprint },
+            login: { oauth_key: @oauth_token },
+            user: { fingerprint: UserFactory.default_fingerprint },
             filter: {
               'type' => 'ACH-US'
             }

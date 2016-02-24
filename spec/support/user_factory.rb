@@ -1,4 +1,8 @@
 class UserFactory
+  def self.default_fingerprint
+    'fingerprint'
+  end
+
   def self.create_user
     user_params = {
       logins: [
@@ -13,7 +17,7 @@ class UserFactory
         'Synapsis KYCSpec'
       ],
       fingerprints: [
-        'fingerprint' => 'suasusau21324redakufejfjsf'
+        'fingerprint' => self.default_fingerprint
       ],
       ips: [
         '192.168.0.1'
