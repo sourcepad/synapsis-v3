@@ -70,8 +70,6 @@ class Synapsis::User < Synapsis::APIResource
     return_response(response)
   end
 
-  private
-
   def self.convert_attachment_to_base_64(doc_params)
     file_type = MIME::Types.type_for(doc_params[:user][:doc][:attachment]).first.content_type
 
@@ -85,5 +83,7 @@ class Synapsis::User < Synapsis::APIResource
 
     return doc_params
   end
+
+  private_class_method :convert_attachment_to_base_64
 end
 
