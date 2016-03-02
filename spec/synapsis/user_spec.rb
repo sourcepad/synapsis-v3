@@ -67,63 +67,62 @@ RSpec.describe Synapsis::User do
     end
   end
 
-  context '.update' do
-    xit 'pending--updates the user' do
-      sign_in_user_params = {
-        login: {
-          email: 'sample_user@synapsis.com',
-          password: '5ourcep4d'
-        },
-        user: {
-          _id: {
-            '$oid' => '55bf009b86c2733920d5b0af'
-          },
-          fingerprint: 'suasusau21324redakufejfjsf',
-          "phone_number":"901.111.1111",
-          validation_pin: '123456',
-          ip: '192.168.0.1'
-        },
-        'update' => {
-          'login' => {
-            'email' => 'sample_user@synapsis.com',
-            'password' => '5ourcep4d'
-          },
-          'phone_number' => '901.111.1112',
-          # 'remove_phone_number' => '901.111.1111',
-          'legal_name' => 'Hello World'
-        }
-      }
-
-      sign_in_user_response = Synapsis::User.sign_in(sign_in_user_params)
-
-      expect(sign_in_user_response.success).to be_truthy
-      expect(sign_in_user_response.oauth.oauth_key).not_to be_empty
+  context 'non-create methods (create a customer beforehand to get around refreshing token issue)' do
+    before(:all) do
+      @user = UserFactory.create_user
+      @oid = @user.user._id.send(:$oid)
+      @oauth_token = @user.oauth.oauth_key
     end
-  end
 
-  context '.add_document' do
-    context 'happy path' do
-      it 'pending--unable to attach' do
-        doc_params = {
+    context '.update' do
+      it 'updates the user' do
+        sign_in_user_params = {
           login: {
-            oauth_key: SampleUser.oauth_consumer_key
+            email: 'synapsis_kyc_spec@sourcepad.com',
+            password: '5ourcep4d'
           },
           user: {
-            doc: {
-              attachment: 'spec/test_file.txt'
+            _id: {
+              '$oid' => @oid,
             },
-            fingerprint: SampleUser.fingerprint
+            fingerprint: UserFactory.default_fingerprint,
+            update: {
+              'legal_name' => 'Hello World'
+            }
           }
         }
 
-        successful_add_document_response = Synapsis::User.add_document(doc_params)
+        sign_in_user_response = Synapsis::User.sign_in(sign_in_user_params)
 
-        expect(successful_add_document_response.success).to eq true
-        expect(successful_add_document_response.message.en).to eq 'Attachment added'
-        expect(successful_add_document_response.user.permission).to eq 'SEND-AND-RECEIVE'
+        expect(sign_in_user_response.success).to be_truthy
+        expect(sign_in_user_response.user.legal_names.include?('Hello World')).to be_truthy
+      end
+    end
+
+    context '.add_document' do
+      context 'happy path' do
+        it 'pending--unable to attach' do
+          doc_params = {
+            login: {
+              oauth_key: @oauth_token
+            },
+            user: {
+              doc: {
+                attachment: 'spec/test_file.txt'
+              },
+              fingerprint: UserFactory.default_fingerprint
+            }
+          }
+
+          successful_add_document_response = Synapsis::User.add_document(doc_params)
+
+          expect(successful_add_document_response.success).to eq true
+          expect(successful_add_document_response.message.en).to eq 'Attachment added'
+        end
       end
     end
   end
+
 
   context '.show' do
     context 'happy path, filtered via email' do
