@@ -81,7 +81,7 @@ RSpec.describe Synapsis::User do
         failed_kyc_params = @add_kyc_params.clone
         failed_kyc_params[:user][:doc][:document_value] = '1111'
 
-        expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error).with_message('Unable to verify document information. Please submit a valid copy of passport/driver\'s license.')
+        expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error)
       end
     end
 

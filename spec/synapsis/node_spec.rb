@@ -36,7 +36,8 @@ RSpec.describe Synapsis::Node do
         it 'wrong password raises a Synapsis Error' do
           wrong_password_bank_login_params = add_node_via_bank_login_params.clone
           wrong_password_bank_login_params[:node][:info][:bank_pw] = 'WRONG PASSWORD'
-          expect { Synapsis::Node.add(wrong_password_bank_login_params) }.to raise_error(Synapsis::Error).with_message('Please Enter the Correct Username and Password')
+ Synapsis::Node.add(wrong_password_bank_login_params)
+          expect { Synapsis::Node.add(wrong_password_bank_login_params) }.to raise_error(Synapsis::Error)
         end
       end
     end
@@ -135,7 +136,7 @@ RSpec.describe Synapsis::Node do
         xit 'supposedly fails, but invalid account/routing numbers still go through' do
           wrong_account_number_bank_params = add_node_via_account_number_params.clone
           wrong_account_number_bank_params[:node][:info][:routing_number] = 'NOT A ROUTING NUMBER'
-          expect { Synapsis::Node.add(wrong_account_number_bank_params) }.to raise_error(Synapsis::Error).with_message('Please Enter the Correct Username and Password')
+          expect { Synapsis::Node.add(wrong_account_number_bank_params) }.to raise_error(Synapsis::Error)
         end
       end
     end

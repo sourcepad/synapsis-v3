@@ -22,8 +22,12 @@ class Synapsis::APIResource
     if response.success?
       return parsed_response
     else
-      puts response
-      raise Synapsis::Error, parsed_response[class_name] || parsed_response['reason'] || parsed_response['error_message'] || parsed_response['error']['en']
+      raise Synapsis::Error.new(
+        error: parsed_response.error,
+        http_code: parsed_response.http_code,
+        error_code: parsed_response.error_code,
+        success: parsed_response.success
+      )
     end
   end
 

@@ -70,7 +70,7 @@ RSpec.describe Synapsis::Transaction do
         it 'wrong password raises a Synapsis Error' do
           wrong_transaction_params = add_transaction_params.clone
           wrong_transaction_params[:login][:oauth_key] = 'WRONG PASSWORD'
-          expect { Synapsis::Transaction.add(wrong_transaction_params) }.to raise_error(Synapsis::Error).with_message('Badly formatted payload. Please fix the payload and try again. Error: ValueError: Invalid value supplied for key "oauth_key". Explanation: The supplied data is incorrect. Please check the docs to make sure that you are sending the value in the correct format.')
+          expect { Synapsis::Transaction.add(wrong_transaction_params) }.to raise_error(Synapsis::Error)
         end
       end
 
