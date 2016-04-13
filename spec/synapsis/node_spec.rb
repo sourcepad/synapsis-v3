@@ -36,7 +36,6 @@ RSpec.describe Synapsis::Node do
         it 'wrong password raises a Synapsis Error' do
           wrong_password_bank_login_params = add_node_via_bank_login_params.clone
           wrong_password_bank_login_params[:node][:info][:bank_pw] = 'WRONG PASSWORD'
- Synapsis::Node.add(wrong_password_bank_login_params)
           expect { Synapsis::Node.add(wrong_password_bank_login_params) }.to raise_error(Synapsis::Error)
         end
       end
