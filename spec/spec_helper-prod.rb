@@ -19,7 +19,11 @@ Synapsis.configure do |config|
   config.logging = true
 end
 
-config_vars = YAML.load_file("./spec/config-#{Synapsis.environment}.yml")
+if File.file?("./spec/config-#{Synapsis.environment}.yml")
+  config_vars = YAML.load_file("./spec/config-#{Synapsis.environment}.yml")
+else
+  config_vars = {}
+end
 
 Synapsis.configure do |config|
   config.client_id = config_vars['client_id']
