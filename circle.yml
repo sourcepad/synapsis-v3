@@ -3,4 +3,4 @@ database:
     - mv spec/config.yml.ci spec/config-test.yml # completely ignore Circle's database.yml
 test:
   override:
-    - CODECLIMATE_REPO_TOKEN=382c7b235cc5654127d990a7f7af31fb1a4b4accb97971f8fe6938257f9af97e bundle exec rspec spec
+    - CODECLIMATE_REPO_TOKEN=382c7b235cc5654127d990a7f7af31fb1a4b4accb97971f8fe6938257f9af97e bundle exec rspec spec --tag ~hidden_from_ci

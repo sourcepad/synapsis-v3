@@ -2,6 +2,7 @@ class Synapsis::APIResource
   def self.request(method, url, params, oauth_key: nil, fingerprint: nil, ip_address: nil)
     Synapsis.connection.send(method) do |req|
       req.headers['Content-Type'] = 'application/json'
+      req.headers['X-SP-LANG'] = 'EN' # Set language to English
       req.headers['X-SP-GATEWAY'] = "#{Synapsis.client_id}|#{Synapsis.client_secret}"
 
       if oauth_key && fingerprint
@@ -10,6 +11,12 @@ class Synapsis::APIResource
 
       if ip_address
         req.headers['X-SP-USER-IP'] = ip_address
+      end
+
+      if Synapsis.environment == 'production'
+        req.headers['X-SP-PROD'] = 'YES'
+      else
+        req.headers['X-SP-PROD'] = 'NO'
       end
 
       req.url url

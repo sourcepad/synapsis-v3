@@ -1,6 +1,5 @@
 require 'spec_helper'
 
-
 RSpec.describe Synapsis::APIResource do
   context 'X-SP-GATEWAY' do
     it 'adds an X-SP-GATEWAY header composed of the client id and client secret' do
@@ -10,6 +9,18 @@ RSpec.describe Synapsis::APIResource do
         {})
 
       expect(response.env.request_headers['X-SP-GATEWAY']). not_to be_nil
+    end
+  end
+
+  context 'X-SP-PROD and URL host' do
+    it "sets an X-SP-PROD header to NO if Synapsis's environment is not configured to 'production' and the URL host is the sandbox environment" do
+      response = Synapsis::APIResource.request(
+        :post,
+        'sample_url',
+        {})
+
+      expect(response.env.request_headers['X-SP-PROD']).to eq 'NO'
+      expect(response.env.url.to_s).to eq "https://sandbox.synapsepay.com/sample_url"
     end
   end
 
