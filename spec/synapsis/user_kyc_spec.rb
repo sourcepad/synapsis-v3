@@ -26,18 +26,18 @@ RSpec.describe Synapsis::User do
     # We need to create users because Synapse limits doc attachments (verify_kyc) to 5 per user. Then we need to create users before each test because a partially successful doc attachment affects subsequent requests' output.
 
     context 'SSN validation successful, no need for doc/verify' do
-      it 'adds a KYC' do
+      it "confirms that the user's virtual KYC status is SUBMITTED|VALID" do
         user = UserFactory.create_user
         add_kyc_params[:login][:oauth_key] = user.oauth.oauth_key
         added_kyc_response = Synapsis::User.add_kyc(add_kyc_params)
 
         expect(added_kyc_response.success).to be_truthy
-        expect(added_kyc_response.message.en).to eq 'Document information verified.'
+        expect(added_kyc_response.user.doc_status.virtual_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
       end
     end
 
-    context 'SSN validation successful, no need for doc/verify' do
-      it 'returns a hash of questions' do
+    context 'Validation is partially successful. KBA verification required.' do
+      it 'returns a hash of questions--and a subsequent request to a different endpoint completes the KYC process' do
         user = UserFactory.create_user
         partially_verified_kyc_params = add_kyc_params.clone
         partially_verified_kyc_params[:user][:doc][:document_value] = '3333'
@@ -74,6 +74,7 @@ RSpec.describe Synapsis::User do
         expect(completed_kyc_response.success).to be_truthy
         expect(completed_kyc_response.message.en).to eq 'KBA submitted'
         expect(completed_kyc_response.user.permission).to include 'RECEIVE'
+        expect(completed_kyc_response.user.doc_status.virtual_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
       end
     end
 
@@ -109,7 +110,7 @@ RSpec.describe Synapsis::User do
           add_document_response = Synapsis::User.add_document(doc_params)
 
           expect(add_document_response.message.en).to eq 'Attachment added'
-          expect(add_document_response.user.doc_status.physical_doc).to eq 'SUBMITTED|VALID'
+          expect(add_document_response.user.doc_status.physical_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
         end
       end
     end

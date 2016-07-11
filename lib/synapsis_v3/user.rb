@@ -4,6 +4,16 @@ require 'base64'
 class Synapsis::User < Synapsis::APIResource
   extend Synapsis::APIOperations::Create
 
+  module DocumentStatus
+    MISSING_INVALID = 'MISSING|INVALID'
+    RESUBMIT_INVALID = 'RESUBMIT|INVALID'
+    SUBMITTED = 'SUBMITTED'
+    SUBMITTED_REVIEWING = 'SUBMITTED|REVIEWING'
+    SUBMITTED_MFA_PENDING = 'SUBMITTED|MFA_PENDING'
+    SUBMITTED_INVALID = 'SUBMITTED|INVALID'
+    SUBMITTED_VALID = 'SUBMITTED|VALID'
+  end
+
   def self.create(params)
     payload = params.merge(client_credentials)
 
