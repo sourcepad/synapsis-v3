@@ -1,4 +1,5 @@
 require 'faraday'
+require 'faraday/detailed_logger'
 require 'ostruct'
 
 # Namespacing
@@ -20,14 +21,19 @@ API_V3_PATH = 'api/v3/'
 
 module Synapsis
   class << self
-    attr_accessor :client_id, :client_secret, :environment
+    attr_accessor :client_id, :client_secret, :environment, :logging
 
     def connection
       @connection ||= Faraday.new(url: synapse_url) do |faraday|
-        faraday.request  :multipart             # form-encode POST params
-        faraday.request  :url_encoded             # form-encode POST params
-        faraday.response :logger                  # log requests to STDOUT
-        faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+        faraday.request  :multipart              # form-encode POST params
+
+        if Synapsis.logging
+          faraday.response  :detailed_logger        # form-encode POST params
+        end
+
+        faraday.request  :url_encoded            # form-encode POST params
+        faraday.response :logger                 # log requests to STDOUT
+        faraday.adapter  Faraday.default_adapter # make requests with Net::HTTP
       end
     end
 

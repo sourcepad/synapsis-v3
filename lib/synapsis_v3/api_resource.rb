@@ -1,8 +1,17 @@
 class Synapsis::APIResource
-  def self.request(method = :post, url, params)
-
+  def self.request(method, url, params, oauth_key: nil, fingerprint: nil, ip_address: nil)
     Synapsis.connection.send(method) do |req|
       req.headers['Content-Type'] = 'application/json'
+      req.headers['X-SP-GATEWAY'] = "#{Synapsis.client_id}|#{Synapsis.client_secret}"
+
+      if oauth_key && fingerprint
+        req.headers['X-SP-USER'] = "#{oauth_key}|#{fingerprint}"
+      end
+
+      if ip_address
+        req.headers['X-SP-USER-IP'] = ip_address
+      end
+
       req.url url
       req.body = JSON.generate(params)
     end

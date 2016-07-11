@@ -8,3 +8,5 @@
 /spec/reports/
 /tmp/
 /spec/config.yml
+/spec/config-test.yml
+/spec/config-production.yml
