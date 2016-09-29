@@ -1,4 +1,17 @@
 class UserFactory
+  def self.default_authentication_headers(synapse_user_create_response)
+    {
+      fingerprint: UserFactory.default_fingerprint,
+      synapse_id: synapse_user_create_response.user._id.send(:$oid),
+      oauth_key: synapse_user_create_response.oauth.oauth_key,
+      ip_address: UserFactory.default_ip_address
+    }
+  end
+
+  def self.default_ip_address
+    '192.168.0.1'
+  end
+
   def self.default_fingerprint
     'fingerprint'
   end
@@ -72,16 +85,16 @@ class UserFactory
       login: { oauth_key: oauth_token },
       user: { fingerprint: fingerprint },
       node: {
-        type: 'ACH-US',
-        info: {
-          bank_id: 'synapse_nomfa',
-          bank_pw: 'test1234',
-          bank_name: 'bofa'
-        },
-        extra: {
-          supp_id: '123sa'
-        }
-      }
+      type: 'ACH-US',
+      info: {
+      bank_id: 'synapse_nomfa',
+      bank_pw: 'test1234',
+      bank_name: 'bofa'
+    },
+    extra: {
+      supp_id: '123sa'
+    }
+    }
     }
     return Synapsis::Node.add(create_node_params)
   end

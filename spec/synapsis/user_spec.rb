@@ -98,46 +98,6 @@ RSpec.describe Synapsis::User do
         expect(sign_in_user_response.user.legal_names.include?('Hello World')).to be_truthy
       end
     end
-
-    context '.add_document' do
-      context 'happy path' do
-        it 'pending--unable to attach' do
-          doc_params = {
-            login: {
-              oauth_key: @oauth_token
-            },
-            user: {
-              doc: {
-                attachment: 'spec/test_file.txt'
-              },
-              fingerprint: UserFactory.default_fingerprint
-            }
-          }
-
-          successful_add_document_response = Synapsis::User.add_document(doc_params)
-
-          expect(successful_add_document_response.success).to eq true
-          expect(successful_add_document_response.message.en).to eq 'Attachment added'
-        end
-      end
-    end
-  end
-
-
-  context '.show' do
-    context 'happy path, filtered via email' do
-      it 'is able to search for the user' do
-        show_params = {
-          'filter' => {
-            'page' => 1
-          }
-        }
-
-        successful_show_user_response = Synapsis::User.show(show_params)
-        expect(successful_show_user_response.success).to eq true
-        expect(successful_show_user_response.users).to be_a_kind_of(Array)
-      end
-    end
   end
 
   context '.search' do

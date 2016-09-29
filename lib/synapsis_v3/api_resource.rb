@@ -1,16 +1,16 @@
 class Synapsis::APIResource
-  def self.request(method, url, params, oauth_key: nil, fingerprint: nil, ip_address: nil)
+  def self.request(method, url, params, headers = {})
     Synapsis.connection.send(method) do |req|
       req.headers['Content-Type'] = 'application/json'
       req.headers['X-SP-LANG'] = 'EN' # Set language to English
       req.headers['X-SP-GATEWAY'] = "#{Synapsis.client_id}|#{Synapsis.client_secret}"
 
-      if oauth_key && fingerprint
-        req.headers['X-SP-USER'] = "#{oauth_key}|#{fingerprint}"
+      if headers[:oauth_key] && headers[:fingerprint]
+        req.headers['X-SP-USER'] = "#{headers[:oauth_key]}|#{headers[:fingerprint]}"
       end
 
-      if ip_address
-        req.headers['X-SP-USER-IP'] = ip_address
+      if headers[:ip_address]
+        req.headers['X-SP-USER-IP'] = headers[:ip_address]
       end
 
       if Synapsis.environment == 'production'
@@ -28,6 +28,10 @@ class Synapsis::APIResource
     name.partition('::').last.downcase
   end
 
+  def self.class_name_pluralized
+    "#{class_name}s"
+  end
+
   def class_name
     self.class.name.partition('::').last.downcase
   end
@@ -38,6 +42,7 @@ class Synapsis::APIResource
     if response.success?
       return parsed_response
     else
+      puts parsed_response
       raise Synapsis::Error.new(
         error: parsed_response.error,
         http_code: parsed_response.http_code,

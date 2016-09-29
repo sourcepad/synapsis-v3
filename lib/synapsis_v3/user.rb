@@ -34,32 +34,30 @@ class Synapsis::User < Synapsis::APIResource
     return sign_in(params)
   end
 
-  def self.add_kyc(params)
-    add_kyc_url = "#{API_V3_PATH}#{class_name}/doc/add"
+  def self.add_document(payload, headers)
+    verify_kyc_new_url = "#{API_V3_NEW_PATH}users/#{headers[:synapse_id]}"
 
-    response = request(:post, add_kyc_url, params)
-    return_response(response)
-  end
+    # Automatically convert all physical documents to base64 format
+    physical_doc_array = payload[:documents][0][:physical_docs]
+    physical_doc_array = convert_all_physical_documents_to_base64(physical_doc_array)
 
-  def self.verify_kyc(params)
-    verify_kyc_url = "#{API_V3_PATH}#{class_name}/doc/verify"
-
-    response = request(:post, verify_kyc_url, params)
-    return_response(response)
-  end
-
-  def self.add_document(params)
-    add_document_url = "#{API_V3_PATH}user/doc/attachments/add"
-
-    response = request(:post, add_document_url, convert_attachment_to_base_64(params))
+    response = request(:patch, verify_kyc_new_url, payload, headers)
 
     return_response(response)
   end
 
-  def self.show(params)
-    show_user_url = "#{API_V3_PATH}#{class_name}/client/users"
+  def self.convert_all_physical_documents_to_base64(docs_array)
+    if docs_array
+      docs_array.map do |doc|
+        doc[:document_value] = convert_attachment_to_base_64(doc[:document_value])
+      end
+    end
+  end
 
-    response = request(:post, show_user_url, params.merge(client_credentials))
+  def self.show(payload, headers)
+    show_user_url = "#{API_V3_NEW_PATH}#{class_name_pluralized}/#{headers[:synapse_id]}"
+
+    response = request(:get, show_user_url, payload, headers)
 
     return_response(response)
   end
@@ -80,8 +78,8 @@ class Synapsis::User < Synapsis::APIResource
     return_response(response)
   end
 
-  def self.convert_attachment_to_base_64(doc_params)
-    file_type = MIME::Types.type_for(doc_params[:user][:doc][:attachment]).first.content_type
+  def self.convert_attachment_to_base_64(doc)
+    file_type = MIME::Types.type_for(doc).first.content_type
 
     if file_type == 'text/plain'
       mime_padding = "data:text/csv;base64,"
@@ -89,11 +87,10 @@ class Synapsis::User < Synapsis::APIResource
       mime_padding = "data:#{file_type};base64,"
     end
 
-    doc_params[:user][:doc][:attachment] = "#{mime_padding}#{Base64.encode64(File.open(doc_params[:user][:doc][:attachment], 'rb') { |f| f.read })}"
-
-    return doc_params
+    return "#{mime_padding}#{Base64.encode64(File.open(doc, 'rb') { |f| f.read })}"
   end
 
+  private_class_method :convert_all_physical_documents_to_base64
   private_class_method :convert_attachment_to_base_64
 end
 

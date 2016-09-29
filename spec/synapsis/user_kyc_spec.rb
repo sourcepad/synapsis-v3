@@ -1,117 +1,126 @@
+
 require 'spec_helper'
 
 RSpec.describe Synapsis::User do
-  let(:add_kyc_params) {{
-    login: {
-      oauth_key: ''
-    },
-    user: {
-      doc: {
-        birth_day: 4,
-        birth_month: 2,
-        birth_year: 1940,
-        name_first: 'Sample',
-        name_last: 'KYCSpec',
-        address_street1: '1 Infinate Loop',
-        address_postal_code: '95014',
-        address_country_code: 'US',
-        document_value: '2222',
-        document_type: 'SSN'
+  let(:add_document_params) {{
+    documents: [
+      email: 'hello@world.com',
+      phone_number: '1231231234',
+      'ip': '192.168.1.1 ',
+      'name':'Charlie Brown',
+      'alias':'Woof Woof',
+      'entity_type':'M',
+      'entity_scope':'Arts & Entertainment',
+      'day':2,
+      'month':5,
+      'year':2009,
+      'address_street':'Some Farm',
+      'address_city':'SF',
+      'address_subdivision':'CA',
+      'address_postal_code':'94114',
+      'address_country_code':'US',
+      'virtual_docs':[
+        {
+          'document_value':'111-111-2222',
+          'document_type':'SSN'
+        }
+    ],
+    'physical_docs':[
+      {
+        'document_value':'spec/support/test_photo.jpg',
+        'document_type':'GOVT_ID'
       },
-      fingerprint: UserFactory.default_fingerprint
-    }
-  }}
+      {
+        'document_value':'spec/support/test_photo.jpg',
+        'document_type':'EIN_DOC'
+      },
+    ],
+    'social_docs':[
+      {
+        'document_value':'https://www.facebook.com/sankaet',
+        'document_type':'FACEBOOK'
+      }
+      ]
+    ]
+  }
+  }
 
-  context '.add_kyc/.verify_kyc' do
+  context 'add_document' do
     # We need to create users because Synapse limits doc attachments (verify_kyc) to 5 per user. Then we need to create users before each test because a partially successful doc attachment affects subsequent requests' output.
-
-    context 'SSN validation successful, no need for doc/verify' do
-      it "confirms that the user's virtual KYC status is SUBMITTED|VALID" do
+    context 'success--adds the physical docs and virtual docs, and subsequent responses confirm this' do
+      it 'adds the actual physical docs' do
         user = UserFactory.create_user
-        add_kyc_params[:login][:oauth_key] = user.oauth.oauth_key
-        added_kyc_response = Synapsis::User.add_kyc(add_kyc_params)
 
-        expect(added_kyc_response.success).to be_truthy
-        expect(added_kyc_response.user.doc_status.virtual_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
+        added_kyc_response = Synapsis::User.add_document(add_document_params, UserFactory.default_authentication_headers(user))
+
+        successful_show_user_response = Synapsis::User.show({}, UserFactory.default_authentication_headers(user))
+
+        expect(added_kyc_response.documents[0].physical_docs.find { |x| x.document_type == 'GOVT_ID' }).to be_truthy
+        expect(added_kyc_response.documents[0].physical_docs.find { |x| x.document_type == 'EIN_DOC' }).to be_truthy
       end
     end
 
-    context 'Validation is partially successful. KBA verification required.' do
-      it 'returns a hash of questions--and a subsequent request to a different endpoint completes the KYC process' do
+    context 'successful, but needs further validation (3333 case)' do
+      it 'asks the questions, and if the answers make sense, the virtual_doc status becomes SUBMITTED|VALID' do
         user = UserFactory.create_user
-        partially_verified_kyc_params = add_kyc_params.clone
-        partially_verified_kyc_params[:user][:doc][:document_value] = '3333'
-        partially_verified_kyc_params[:login][:oauth_key] = user.oauth.oauth_key
 
-        partially_added_kyc_response = Synapsis::User.add_kyc(partially_verified_kyc_params)
+        add_document_params[:documents][0][:virtual_docs][0][:document_value] = '3333'
 
-        expect(partially_added_kyc_response.success).to be_truthy
-        expect(partially_added_kyc_response.message.en).to eq 'Document information submitted. Please answer the attached KBA questions.'
-        expect(partially_added_kyc_response.question_set.id).not_to be_empty
-        expect(partially_added_kyc_response.question_set.questions).to be_a_kind_of Array
+        questions_response = Synapsis::User.add_document(add_document_params, UserFactory.default_authentication_headers(user))
 
-        verify_kyc_params = {
-          login: {
-            oauth_key: user.oauth.oauth_key
-          },
-          user: {
-            doc: {
-              question_set_id: partially_added_kyc_response.question_set.id,
-              answers: [
-                { 'question_id': 1, 'answer_id': 1 },
-                { 'question_id': 2, 'answer_id': 1 },
-                { 'question_id': 3, 'answer_id': 1 },
-                { 'question_id': 4, 'answer_id': 1 },
-                { 'question_id': 5, 'answer_id': 1 }
-              ]
-            },
-            fingerprint: UserFactory.default_fingerprint
-          }
+        expect(questions_response.documents.first.virtual_docs.first.meta.question_set.questions).to be_truthy
+        expect(questions_response.doc_status.virtual_doc).to eq 'MISSING|INVALID'
+
+        answer_questions_params = {
+          documents: [{
+            id: questions_response.documents.first.id,
+            virtual_docs: [{
+            id: questions_response.documents.first.virtual_docs.first.id, meta: {
+              question_set: {
+                answers: [
+                  { question_id: 1, answer_id: 1},
+                  { question_id: 2, answer_id: 1},
+                  { question_id: 3, answer_id: 1},
+                  { question_id: 4, answer_id: 1},
+                  { question_id: 5, answer_id: 1}
+                ]
+              }
+            }
+          }]
+          }]
         }
 
-        completed_kyc_response = Synapsis::User.verify_kyc(verify_kyc_params)
+        answered_questions_response = Synapsis::User.add_document(answer_questions_params, UserFactory.default_authentication_headers(user))
 
-        expect(completed_kyc_response.success).to be_truthy
-        expect(completed_kyc_response.message.en).to eq 'KBA submitted'
-        expect(completed_kyc_response.user.permission).to include 'RECEIVE'
-        expect(completed_kyc_response.user.doc_status.virtual_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
+        expect(answered_questions_response.doc_status.virtual_doc).to eq 'SUBMITTED|VALID'
       end
     end
 
-    context 'SSN validation fails -- when means no SSN verification was found' do
-      it 'raises a Synapsis::Error for submitting invalid SSN information' do
+    context 'success--stagger submission of physical and virtual docs' do
+      it 'shows physical as invalid first, then valid later' do
         user = UserFactory.create_user
-        failed_kyc_params = add_kyc_params.clone
-        failed_kyc_params[:user][:doc][:document_value] = '1111'
-        failed_kyc_params[:login][:oauth_key] = user.oauth.oauth_key
 
-        expect { Synapsis::User.add_kyc(failed_kyc_params) }.to raise_error(Synapsis::Error)
-      end
-    end
+        add_document_params[:documents].first[:physical_docs] = []
 
-    context '.add_document' do
-      context 'happy path' do
-        it 'attaches' do
-          user = UserFactory.create_user
-          photo_path = 'spec/support/test_photo.jpg'
+        added_kyc_response = Synapsis::User.add_document(add_document_params, UserFactory.default_authentication_headers(user))
 
-          doc_params = {
-            login: {
-              oauth_key: user.oauth.oauth_key
-            },
-            user: {
-              doc: {
-                attachment: photo_path
-              },
-              fingerprint: UserFactory.default_fingerprint
-            }
-          }
+        expect(added_kyc_response.doc_status.virtual_doc).to eq 'SUBMITTED|VALID'
+        expect(added_kyc_response.doc_status.physical_doc).to eq 'MISSING|INVALID'
 
-          add_document_response = Synapsis::User.add_document(doc_params)
+        add_document_params[:documents].first[:physical_docs] = [
+          {
+            'document_value':'spec/support/test_photo.jpg',
+            'document_type':'GOVT_ID'
+          },
+          {
+            'document_value':'spec/support/test_photo.jpg',
+            'document_type':'EIN_DOC'
+          },
+        ]
 
-          expect(add_document_response.message.en).to eq 'Attachment added'
-          expect(add_document_response.user.doc_status.physical_doc).to eq Synapsis::User::DocumentStatus::SUBMITTED_VALID
-        end
+        added_kyc_response2 = Synapsis::User.add_document(add_document_params, UserFactory.default_authentication_headers(user))
+
+        expect(added_kyc_response2.doc_status.physical_doc).to eq 'SUBMITTED|VALID'
       end
     end
   end

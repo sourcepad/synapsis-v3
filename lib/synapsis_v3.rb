@@ -18,6 +18,7 @@ require "synapsis_v3/transaction"
 require "synapsis_v3/subscription"
 
 API_V3_PATH = 'api/v3/'
+API_V3_NEW_PATH = 'api/3/'
 
 module Synapsis
   class << self
