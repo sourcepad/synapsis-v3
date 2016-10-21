@@ -5,6 +5,7 @@ require 'ostruct'
 # Namespacing
 module Synapsis
   module APIOperations; end
+  module V01; end
 end
 
 require "synapsis_v3/version"
@@ -16,6 +17,7 @@ require "synapsis_v3/user"
 require "synapsis_v3/node"
 require "synapsis_v3/transaction"
 require "synapsis_v3/subscription"
+require "synapsis_v3/v01/user"
 
 API_V3_PATH = 'api/v3/'
 API_V3_NEW_PATH = 'api/3/'

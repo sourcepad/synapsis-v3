@@ -25,7 +25,7 @@ class Synapsis::APIResource
   end
 
   def self.class_name
-    name.partition('::').last.downcase
+    name.split('::').last.downcase
   end
 
   def self.class_name_pluralized
@@ -33,7 +33,7 @@ class Synapsis::APIResource
   end
 
   def class_name
-    self.class.name.partition('::').last.downcase
+    self.class.name.split('::').last.downcase
   end
 
   def self.return_response(response)
